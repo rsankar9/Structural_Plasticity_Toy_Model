@@ -8,6 +8,9 @@ import gc
 def sigmoid(x, m=5, a=0.5):
     return 1 / (1 + np.exp(-1 * (x - a) * m))
 
+def sliding_window(X, window):
+    Y = np.array([X[i:i + 10] for i in range(len(X) - window + 1)])
+    return Y
 
 def SPTModel(arg_resFile, arg_rSeed):
     gc.collect()
@@ -219,11 +222,11 @@ def SPTModel(arg_resFile, arg_rSeed):
         print('Reward average over 500 learning trials:', Metric_R[seq_no])
 
         # Plotting
-        plt.figure(figsize=(12, 8))
+        fig = plt.figure(figsize=(12, 8))
 
         T = np.arange(n_trials)
 
-        ax = plt.subplot(4, 1, 1)
+        ax = fig.add_subplot(4, 1, 1)
 
         ax.set_title("Testing RL")
 
@@ -232,41 +235,67 @@ def SPTModel(arg_resFile, arg_rSeed):
         ax.set_ylabel('HVC-RA HL weights')
         ax.set_ylim(Wmin_HL, Wmax_HL)
 
-        ax = plt.subplot(4, 1, 2)
+        ax = fig.add_subplot(4, 1, 2)
 
         ax.plot(T, S_W_HR_RL)
         ax.set_xlabel('Trial no.')
         ax.set_ylabel('HVC-RA RL weights')
         ax.set_ylim(Wmin_RL, Wmax_RL)
 
-        ax = plt.subplot(4, 1, 3)
+        ax = fig.add_subplot(4, 1, 3)
 
-        ax.plot(T, S_MO, label = 'Motor output')
-        ax.plot(T, S_MO_clear, label = 'Clear Motor output')
+        ax.plot(T, S_MO, label='Motor output', marker=',', markersize=1.0, linewidth=0, markerfacecolor='blue',
+                alpha=.5)
+        ax.plot(T, S_MO_clear, label='Clear motor output', marker=',', markersize=1.0, linewidth=0,
+                markerfacecolor='orange', alpha=.5)
         Target_OP = np.ones(n_trials) * syllable_outputs[syll]
-        ax.plot(T, Target_OP, label = 'Target output')
-        ax.legend(loc='lower right')
         ax.set_xlabel('Trial no.')
-        ax.set_ylabel('MO output')
+        ax.set_ylabel('Averaged MO output')
         ax.set_ylim(min_possible_output, max_possible_output)
 
+        # Plot a sliding average over 50 trials
 
-        ax = plt.subplot(4, 1, 4)
+        sw = reward_window * 2
+        S_MO_sw = sliding_window(S_MO, sw)
+        S_MO_clear_sw = sliding_window(S_MO_clear, sw)
+        swT = range(len(S_MO_sw))
+        ax.plot(swT, np.mean(S_MO_sw, axis=-1), linewidth=0.5, color="blue")
+        ax.plot(swT, np.mean(S_MO_clear_sw, axis=-1), linewidth=0.5, color="orange")
+        ax.plot(T, Target_OP, label='Target output', color="green")
 
-        ax.plot(T, E_norm[seq_no], label = 'Norm Error')
-        ax.plot(T, E_norm_clear[seq_no], label = 'Clear Norm Error')
-        ax.plot(T, R[seq_no], label = 'Reward')
+        ax.legend(loc='lower right')
+
+        ax = fig.add_subplot(4, 1, 4)
+
+        ax.plot(T, E_norm[seq_no], marker=',', markersize=1.0, linewidth=0, markerfacecolor='blue', alpha=.5)
+        ax.plot(T, E_norm_clear[seq_no], marker=',', markersize=1.0, linewidth=0, markerfacecolor='orange', alpha=.5)
+        ax.plot(T, R[seq_no], marker=',', markersize=1.0, linewidth=0, markerfacecolor='green', alpha=.5)
         ax.set_xlabel('Trial no.')
-        ax.set_ylabel('Error/reward')
-        ax.set_ylim(Wmin_RL, Wmax_RL)
+        ax.set_ylabel('Averaged Error/reward')
+        ax.set_ylim(0, 1)
+
+        # Plot a sliding average over 10 trials
+
+        sw = 10
+        E_norm_sw = sliding_window(E_norm[seq_no], sw)
+        E_norm_clear_sw = sliding_window(E_norm_clear[seq_no], sw)
+        R_sw = sliding_window(R[seq_no], sw)
+        swT = range(len(E_norm_sw))
+        ax.plot(swT, np.mean(E_norm_sw, axis=-1), label='Norm Error', linewidth=0.5, color="blue")
+        ax.plot(swT, np.mean(E_norm_clear_sw, axis=-1), label='Clear Norm Error', linewidth=0.5, color="orange")
+        ax.plot(swT, np.mean(R_sw, axis=-1), label='Reward', linewidth=0.5, color="green")
+
         ax.legend(loc='lower right')
 
         plt.savefig(resFile + "_" + syll + ".png")
         # plt.show()
         plt.close()
 
+
     print("------ Testing ------")
     R_test_avg = np.zeros(len(seq))
+    seq_output = np.array([])
+
     for seq_no in range(len(seq)):
         syll = seq[seq_no]
         print('Testing syll:', syll, 'Target output:', syllable_outputs[syll])
@@ -274,6 +303,8 @@ def SPTModel(arg_resFile, arg_rSeed):
         HVC[...] = syllable_encoding[syll]
         # Testing syllable
         R_test_sum = 0.0
+        MO_test = np.array([])
+
         for ntt in range(n_testing_trials):
 
             # Compute RA activity
@@ -293,6 +324,22 @@ def SPTModel(arg_resFile, arg_rSeed):
             norm_error = error / output_range
             R_test = np.exp(-norm_error ** 2 / reward_sigma ** 2)
             R_test_sum += R_test
+
+            MO_test = np.append(MO_test, MO)
+
+        avg_MO = np.mean(MO_test)
+
+        min_err = 1000.0
+        min_err_syll = 'Q'
+
+        for s in seq:
+            err_curr = (np.sqrt(((MO - syllable_outputs[s]) ** 2).sum()) / MO_size)
+            if err_curr < min_err:
+                min_err, min_err_syll = err_curr, s
+        seq_output = np.append(seq_output, min_err_syll)
+        print('Mean MO:', avg_MO)
+        print('Syllable outputs:', syllable_outputs)
+
         R_test_avg[seq_no] = R_test_sum/float(n_testing_trials)
         print('Reward average over 500 test trials:', R_test_avg[seq_no])
 
@@ -377,4 +424,4 @@ def SPTModel(arg_resFile, arg_rSeed):
         json.dump(Data, outfile, sort_keys=False, indent=4, separators=(',', ':\t'))
 
     gc.collect()
-    return Metric_R, R_test_avg
+    return Metric_R, R_test_avg, seq, seq_output
