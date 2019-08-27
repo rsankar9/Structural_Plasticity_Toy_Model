@@ -1,9 +1,13 @@
 import ArmExploration
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+
+if os.path.isdir('Results') == False:
+    os.mkdir('Results')
 
 f = 0
-Nruns = 10
+Nruns = 5
 R_early = np.zeros(Nruns)
 R_late = np.zeros(Nruns)
 R_onlyRL = np.zeros(Nruns)
