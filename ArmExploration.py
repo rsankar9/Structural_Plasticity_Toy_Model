@@ -8,16 +8,16 @@ import matplotlib.pyplot as plt
 def SPTModel(arg_resFile, arg_rSeed, arg_HL, arg_early):
     np.random.seed(arg_rSeed)  
     
-    n_arms = 2                                                                      # Arm parameters
+    n_arms = 2                                                                    # Arm parameters
     min_a, max_a = 0, 2*np.pi
-    lengths = np.array([1,1])
+    lengths = np.ones((n_arms))
     total_l = np.sum(lengths)
     pos = np.zeros((n_arms, 2))
     output_range = 2 * total_l                                                      # Maximum error possible
     
-    ntrials = 30000                                                                 # Simulation parameters
+    ntrials = 50000                                                                 # Simulation parameters
     theta = np.random.uniform(min_a, max_a)
-    l = np.random.uniform(0, total_l)
+    l = np.random.uniform(total_l-1, total_l)
     target = np.array([l * np.cos(theta), l * np.sin(theta)])
     
     R = np.zeros(ntrials)
@@ -39,7 +39,7 @@ def SPTModel(arg_resFile, arg_rSeed, arg_HL, arg_early):
         if nt > ntrials/3: HL = arg_HL
     
         # Separate arrays for clarity; reduce later
-        noise = np.random.normal(0, 0.1, 2)
+        noise = np.random.normal(0, 0.1, n_arms)
         angles_t = (angles_hl * HL + angles_rl * RL + noise * RL) % max_a
         
         # Calculating position of arm
@@ -50,7 +50,7 @@ def SPTModel(arg_resFile, arg_rSeed, arg_HL, arg_early):
         # Calculating error and reward
         error = np.sqrt(((output - target) ** 2).sum())
         E[nt] = error / output_range
-        R[nt] = np.exp(-E[nt] ** 2 / 0.55 ** 2)
+        R[nt] = np.exp(-E[nt] ** 2 / 0.35 ** 2)
     
         # Updation of angles
         d_angle_hl = 0.0001 * (angles_t - angles_hl) * HL
@@ -133,8 +133,8 @@ def SPTModel(arg_resFile, arg_rSeed, arg_HL, arg_early):
     ax.plot(0,0,color='black',marker='o',label='Origin')                            # Plotting (0,0)
     ax.plot(target[0], target[1],color='green',marker='X',label='Target')           # Plotting target point
     
-    ax.set_ylim((-2,2))
-    ax.set_xlim((-2,2))
+    ax.set_ylim((-total_l,total_l))
+    ax.set_xlim((-total_l,total_l))
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_aspect(1.0)
