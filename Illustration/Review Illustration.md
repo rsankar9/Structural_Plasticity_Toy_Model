@@ -29,17 +29,17 @@ In the results, you can see that:-
 ### Results
 
 1. Slow development; Negative values allowed
-![Result 1a](/Users/rsankar/Documents/Work/Ongoing work/Toy Illustration/Trial3/Works_slow_neg/Result_illustration.png)
-![Result 1b](/Users/rsankar/Documents/Work/Ongoing work/Toy Illustration/Trial3/Works_slow_neg/Result_illustration_delayed.png)
+![Result 1a](Results_slow_neg/Result_illustration.png)
+![Result 1b](Results_slow_neg/Result_illustration_delayed.png)
 
 2. Fast development; Negative values allowed
-![Result 2a](/Users/rsankar/Documents/Work/Ongoing work/Toy Illustration/Trial3/Works_fast_neg/Result_illustration.png)
-![Result 2b](/Users/rsankar/Documents/Work/Ongoing work/Toy Illustration/Trial3/Works_fast_neg/Result_illustration_delayed.png)
+![Result 2a](Results_fast_neg/Result_illustration.png)
+![Result 2b](Results_fast_neg/Result_illustration_delayed.png)
 
 3. Slow development; Negative values not allowed
-![Result 3a](/Users/rsankar/Documents/Work/Ongoing work/Toy Illustration/Trial3/Works_slow_noneg/Result_illustration.png)
-![Result 3b](/Users/rsankar/Documents/Work/Ongoing work/Toy Illustration/Trial3/Works_slow_noneg/Result_illustration_delayed.png)
+![Result 3a](Results_slow_noneg/Result_illustration.png)
+![Result 3b](Results_slow_noneg/Result_illustration_delayed.png)
 
 4. Fast development; Negative values not allowed
-![Result 4a](/Users/rsankar/Documents/Work/Ongoing work/Toy Illustration/Trial3/Works_fast_noneg/Result_illustration.png)
-![Result 4b](/Users/rsankar/Documents/Work/Ongoing work/Toy Illustration/Trial3/Works_fast_noneg/Result_illustration_delayed.png)
+![Result 4a](Results_fast_noneg/Result_illustration.png)
+![Result 4b](Results_fast_noneg/Result_illustration_delayed.png)
